@@ -1,0 +1,7 @@
+site_name: "Developer Portal: DevCon Workshop 2022"
+theme:
+  name: material
+  logo: Blue_Yonder_rgb.png
+
+extra_css:
+  - stylesheets/extra.css
