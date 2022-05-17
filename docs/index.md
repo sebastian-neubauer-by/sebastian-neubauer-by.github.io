@@ -8,7 +8,7 @@
     If you want ot participate in the workshop, you need an account first.
     Please create your account well in advance as your request needs to be checked. 
 
-Here you can request your account [here](https://bylumuiportalplpna.azureedge.net/?access_domain=7dbea5bb-28b5-4059-bf2a-5b5bf6dae107)
+[You can request your account here :fontawesome-solid-paper-plane:](https://bylumuiportalplpna.azureedge.net/?access_domain=7dbea5bb-28b5-4059-bf2a-5b5bf6dae107){ .md-button }
 
 <figure markdown>
   ![Image title](images/devportal_register_accoun_markedt.png){: align=left }
