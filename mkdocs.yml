@@ -1,7 +1,26 @@
-site_name: "Developer Portal: DevCon Workshop 2022"
+site_name: "DevCon Workshop 2022"
 theme:
   name: material
   logo: Blue_Yonder_rgb.png
+  features:
+    - "navigation.tabs"
+    - "navigation.instant"
+    - "navigation.sections"
+    - "toc.integrate"
 
 extra_css:
   - stylesheets/extra.css
+
+nav:
+    - Registration: index.md
+#    - The Story: story.md
+#    - Introduction: introduction.md
+#    - Workshop Walkthrough: workshop-walkthrough.md
+
+markdown_extensions:
+  - attr_list
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - md_in_html
+  - tables
