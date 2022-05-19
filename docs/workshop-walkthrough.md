@@ -1,4 +1,3 @@
-password: DevCon22
 [comment]: <> (password: DevCon22)
 
 
@@ -315,6 +314,10 @@ We just debugged our workflow template! We are now ready for new challenges!
 Time to develop our first own action. Now that we have the LIAM token, we can authenticate to the any Blue yonder API. 
 So let's call the LDE Overrides API!
 
+Hit the plus sign after the "Get LIAM Token" and select "Http".
+
+
+
 !!! info "How to use results from previous actions"
     If you want to use results from previous actions, you can access them with `body('NAME OF THE ACTION')`, as everything
     in Workflow is json, you can easily access values from the json body using `body('NAME OF THE ACTION')?['KEY']` and 
@@ -412,9 +415,12 @@ inconvenient because they clutter the results.
 But wasn't there a parameter in the api documentation to restrict the result to only prediction overrides created after 
 some date?
 
-Can you figure that out and restrict the results to only overrides from some days back?
+Can you figure that out and restrict the results to only overrides from yesterday?
 
-"Save, Publish, Run" and check the result! How many overrides do you have now in the response?
+??? hint
+    Just check the LDE Overrides Prediction API doc and figure our how the url in the curl command changes when you add the "minAffectedDate"
+
+You think you got it? "Save, Publish, Run" and check the result! How many overrides do you have now in the response?
 
 ??? warning "Look behind you, a Three-Headed Monkey!"
     If you fail to get the json right, just copy&paste. This should work: 
@@ -439,8 +445,17 @@ Can you figure that out and restrict the results to only overrides from some day
 
 ## The Foreach Loop
 
-Now we have a list of all recent overrides predictions, but we are only interested in the newly created overrides predictions.
+Now we have a list of all recent overrides predictions, but we are only interested in the newly created overrides 
+predictions since the last run of the workflow.
 
-For this, the idea is to loop over all entries in the result from the previous HTTP action to retrieve the list of override predictions.
+For this, the idea is to loop over all entries in the result of the previous HTTP action and filter for those entries, 
+where the creation timestamp is greater than the last run of the workflow. 
+
+We will later on trigger the workflow periodically every minute. So the timestamp should be greater then the current 
+time 1 minute ago.
+
+Lets start with the loop over all entries.
+
+Just hit the plus sign after the Get 
 
 
