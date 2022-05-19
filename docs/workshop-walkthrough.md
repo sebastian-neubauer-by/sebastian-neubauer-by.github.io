@@ -316,7 +316,15 @@ So let's call the LDE Overrides API!
 
 Hit the plus sign after the "Get LIAM Token" and select "Http".
 
+<figure markdown>
+  ![Image title](images/WorkflowEditor_rename_httpaction_marked.png){: align=left }
+  <figcaption>Now we have a new Http action and rename it to Get Prediction Overrides.</figcaption>
+</figure>
 
+<figure markdown>
+  ![Image title](images/WorkflowEditor_empty_httpaction.png){: align=left }
+  <figcaption>In the pro-code view, we see it is empty, let's fill it with the right content!</figcaption>
+</figure>
 
 !!! info "How to use results from previous actions"
     If you want to use results from previous actions, you can access them with `body('NAME OF THE ACTION')`, as everything
@@ -422,7 +430,7 @@ Can you figure that out and restrict the results to only overrides from yesterda
 
 You think you got it? "Save, Publish, Run" and check the result! How many overrides do you have now in the response?
 
-??? warning "Look behind you, a Three-Headed Monkey!"
+??? warning "Look behind you, a Three-Headed Monkey! (full solution in here)"
     If you fail to get the json right, just copy&paste. This should work: 
     ``` json
     {
@@ -456,6 +464,91 @@ time 1 minute ago.
 
 Lets start with the loop over all entries.
 
-Just hit the plus sign after the Get 
+Just hit the plus sign after the "Get Prediction Overrides" action and select "Foreach".
+
+Let's rename it to "Process Prediction Overrides".
+
+
+<figure markdown>
+  ![Image title](images/WorkflowEditor_foreach_empty.png){: align=left }
+  <figcaption>Again pretty empty inside. Let's figure it out!</figcaption>
+</figure>
+
+
+So, this is how the structure looks like. 
+``` json hl_lines="4 5 6 7"
+{
+  "type": "Foreach",
+  "actions": {
+    "action": {
+      "type": "",
+      "runAfter": {}
+    }
+  },
+  "foreach": "",
+  "runAfter": {
+    "Get Prediction Overrides": [
+      "Succeeded"
+    ]
+  }
+}
+```
+
+First we need to delete the empty action, otherwise the parser will complain.
+
+``` json
+{
+  "type": "Foreach",
+  "actions": {
+  },
+  "foreach": "",
+  "runAfter": {
+    "Get Prediction Overrides": [
+      "Succeeded"
+    ]
+  }
+}
+```
+
+Do you notice the foreach key? 
+``` json hl_lines="9"
+{
+  "type": "Foreach",
+  "actions": {
+  },
+  "foreach": "",
+  "runAfter": {
+    "Get Prediction Overrides": [
+      "Succeeded"
+    ]
+  }
+}
+```
+The "foreach" key takes a list as a value...as the result of the previous action was a list of prediction overrides...
+maybe this works as before? (@ .. body... do you remember?). Try it out.
+
+!!! hint
+    This is a hard one to figure out: Curly braces `{}` convert the data to a string. 
+    If you do not want to have a string, but the original data structure, you need to leave out the curly braces `}`.
+    Hey, don't worry, took me several days to figure that out ;-)
+
+??? warning "No, I don't get it, show me"
+    Pretty simple if you know how to do it.
+    {
+      "type": "Foreach",
+      "actions": {},
+      "foreach": "@body('Get Prediction Overrides')",
+      "runAfter": {
+        "Get Prediction Overrides": [
+          "Succeeded"
+        ]
+      }
+    }
+
+<figure markdown>
+  ![Image title](images/WorkflowEditor_foreach_runstats_dummy.png){: align=left }
+  <figcaption>If all goes well, we should see a dummy iteration doing nothing for every prediction override.</figcaption>
+</figure>
+
 
 
