@@ -13,9 +13,9 @@ extra_css:
 
 nav:
     - Registration: index.md
-#    - The Story: story.md
-#    - Introduction: introduction.md
-#    - Workshop Walkthrough: workshop-walkthrough.md
+    - The Story: story.md
+    - Introduction: introduction.md
+    - Workshop Walkthrough: workshop-walkthrough.md
 
 markdown_extensions:
   - attr_list
@@ -27,3 +27,7 @@ markdown_extensions:
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji
       emoji_generator: !!python/name:materialx.emoji.to_svg
+
+plugins:
+    - search: {}
+    - encryptcontent: {}
