@@ -793,3 +793,143 @@ all we need to do is replace this with a so called recurrent trigger:
     }
 ```
 
+Wohoo, that's it...lets test it and I will create some new prediction overrides...
+
+??? warning "Screwed something up on the way...hey, that's software engineering...just copy ;)"
+    ``` json
+    
+      "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+          "Get LIAM Token": {
+            "type": "Http",
+            "inputs": {
+              "uri": "https://login.microsoftonline.com/blueyonderus.onmicrosoft.com/oauth2/v2.0/token",
+              "method": "POST",
+              "headers": {
+                "Content-Type": "application/x-www-form-urlencoded"
+              },
+              "body": "client_id=@{parameters('client_id')}&client_secret=@{parameters('client_secret')}&grant_type=client_credentials&scope=@{parameters('scope')}"
+            },
+            "runAfter": {}
+          },
+          "Get Prediction Overrides": {
+            "type": "Http",
+            "inputs": {
+              "uri": "https://api.jdadelivers.com/lde/prediction-overrides/v1/overrides?minAffectedDate=2022-05-15",
+              "method": "GET",
+              "headers": {
+                "accept": "application/json",
+                "Authorization": "Bearer @{body('Get LIAM Token')?['access_token']}"
+              }
+            },
+            "runAfter": {
+              "Get LIAM Token": [
+                "Succeeded"
+              ]
+            }
+          },
+          "Process Prediction Overrides": {
+            "type": "Foreach",
+            "actions": {
+              "Our_filter": {
+                "actions": {
+                  "HTTP": {
+                    "inputs": {
+                      "body": [
+                        {
+                          "associatedData": {},
+                          "description": "Number of product-locations: @{items('Process Prediction Overrides')['number_clp_combination']}, created: @{items('Process Prediction Overrides')['creation_time']} by @{items('Process Prediction Overrides')['creation_user']}",
+                          "extFields": "{}",
+                          "financialImpact": 0,
+                          "navLink": "navLink",
+                          "referenceId": "NA",
+                          "referenceType": "LDE Prediction Overrides",
+                          "resources": [
+                            "resources"
+                          ],
+                          "severity": 0,
+                          "source": "DEVCON",
+                          "subTitle": "NA",
+                          "title": "<Your name> Unprocessed Prediction Override",
+                          "type": "Unprocessed Prediction Override",
+                          "unitImpact": 0
+                        }
+                      ],
+                      "headers": {
+                        "Authorization": "Bearer @{body('Get LIAM Token')?['access_token']}",
+                        "Content-Type": "application/json",
+                        "accept": "application/json"
+                      },
+                      "method": "POST",
+                      "uri": "https://api.jdadelivers.com/lui/exception/v1/exceptions"
+                    },
+                    "runAfter": {},
+                    "type": "Http"
+                  }
+                },
+                "expression": {
+                  "and": [
+                    {
+                      "greater": [
+                        "@{ticks(items('Process Prediction Overrides')['creation_time'])}",
+                        "@{ticks(getPastTime(1, 'Minute'))}"
+                      ]
+                    }
+                  ]
+                },
+                "runAfter": {},
+                "type": "If"
+              }
+            },
+            "foreach": "@body('Get Prediction Overrides')",
+            "runAfter": {
+              "Get Prediction Overrides": [
+                "Succeeded"
+              ]
+            }
+          }
+        },
+        "contentVersion": "2021.1.0.0",
+        "outputs": {},
+        "parameters": {
+          "client_id": {
+            "defaultValue": "",
+            "type": "String"
+          },
+          "client_secret": {
+            "defaultValue": "",
+            "type": "String"
+          },
+          "scope": {
+            "defaultValue": "",
+            "type": "String"
+          }
+        },
+        "triggers": {
+          "Recurrence": {
+            "evaluatedRecurrence": {
+              "frequency": "Minute",
+              "interval": 1
+            },
+            "recurrence": {
+              "frequency": "Minute",
+              "interval": 1
+            },
+            "type": "Recurrence"
+          }
+        }
+      },
+      "parameters": {
+        "client_id": {
+          "value": "----myid-----"
+        },
+        "client_secret": {
+          "value": "-----my secret------"
+        },
+        "scope": {
+          "value": "https://blueyonderus.onmicrosoft.com/69adb04d-658f-4b86-a659-67fe0f23bd1f/.default"
+        }
+      }
+    }
+    ```
