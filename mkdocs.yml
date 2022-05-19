@@ -13,8 +13,8 @@ extra_css:
 
 nav:
     - Registration: index.md
-    - The Story: story.md
-    - Introduction: introduction.md
+#    - The Story: story.md
+#    - Introduction: introduction.md
     - Workshop Walkthrough: workshop-walkthrough.md
 
 markdown_extensions:
@@ -31,3 +31,9 @@ markdown_extensions:
 plugins:
     - search: {}
     - encryptcontent: {}
+    - enumerate-headings:
+        increment_across_pages: false
+        exclude:
+          - index.md
+          - story.md
+          - introduction.md

@@ -22,7 +22,7 @@
 
 Make sure you fill out all the required fields and make sure it is a valid phone number (you can check [here](https://libphonenumber.appspot.com/) ). Also make sure to use your company email address. 
 Otherwise the approval might fail.
-If you do not receive an email within 24h (manual approval required), please contact Sebastian.Neubauer@blueyonder.com
+If you do not receive an email within 24h (manual approval required), please contact Sebastian.Neubauer@[Blue Yonder domain]
 
 Once you received an email with a temporary password.
 
@@ -34,3 +34,7 @@ You need to enter the realm, which is `by-developer` for the developer portal.
 
 
 That's it, you should now be onboarded to the Luminate Platform!
+
+!!! note "Prepwork for the workshop"
+    - Create your account
+    - All you need is a Browser (use Firefox or Chrome) and internet

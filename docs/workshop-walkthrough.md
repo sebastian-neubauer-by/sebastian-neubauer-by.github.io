@@ -1,4 +1,6 @@
 password: DevCon22
+[comment]: <> (password: DevCon22)
+
 
 # The developer Portal
 
@@ -200,7 +202,7 @@ That is exactly what the "Workflow" feature is for.
 
 <figure markdown>
   ![Image title](images/ALMStudio_create_module_name.png){: align=left }
-  <figcaption>As every participant created their own module, let's include our name in the module name, why not YOURNAME-workshop</figcaption>
+  <figcaption>As every participant creates their own module, let's include our name in the module name, why not YOURNAME-workshop</figcaption>
 </figure>
 
 
@@ -241,12 +243,77 @@ That is exactly what the "Workflow" feature is for.
 
 ## From Low-Code to Pro-Code
 
-show low-code-pro code navigation.
+!!! info "Low-Code <> Pro-Code"
+    There is a low-code representation of your workflow, but there you have only limited customizability. 
+    So you will often have to switch between the low-code editor, and the pro-code editor. You can either enter the 
+    pro-code of the full workflow, or just the pro-code representation of a single node. In this section you will 
+    learn how to jump between those.
 
-## The Save, Publish, Run Cycle
+<figure markdown>
+  ![Image title](images/WorkflowEditor_template.png){: align=left }
+  <figcaption>Once you are in the low-code editor you should see the template which is just one HTTP action.</figcaption>
+</figure>
 
-show how to save publisch run with pics from get liam.
 
+<figure markdown>
+  ![Image title](images/WorkflowEditor_global_switchprocode_marked.png){: align=left }
+  <figcaption>When no node is selected (click on the white background), "Switch to Pro-Code" brings you to the pro-code representation of the global workflow.</figcaption>
+</figure>
+
+<figure markdown>
+  ![Image title](images/WorkflowEditor_global_procode_marked.png){: align=left }
+  <figcaption>"Switch to Workflow editor" brings you back to the low-code representation.</figcaption>
+</figure>
+
+
+<figure markdown>
+  ![Image title](images/WorkflowEditor_node_switchprocode.png){: align=left }
+  <figcaption>If you select a node (notice the "Action Properties" window in the top right) "Switch to Pro-Code" brings you to the pro-code representation of only the selected node.</figcaption>
+</figure>
+
+
+<figure markdown>
+  ![Image title](images/WorkflowEditor_node_procode.png){: align=left }
+  <figcaption>And "Switch to Workflow Editor" brings you back.</figcaption>
+</figure>
+
+Now you know everything about low-code, pro-code. If you just stay in the pro-code representation, I will not hate you ;-)
+
+## The Save, Publish, Run, Check Cycle
+
+In this section we learn how we do the usual development cycle: change something, run it, check if the results are as 
+expected (which barely ever is the case, right?)
+
+<figure markdown>
+  ![Image title](images/WorkflowEditor_template_cycle.png){: align=left }
+  <figcaption>The development cyle is 1) Save 2) Publish 3) Run 4) Open Run History.</figcaption>
+</figure>
+
+If we do the cycle with the template we should see a failed first run.
+
+
+<figure markdown>
+  ![Image title](images/WorkflowEditor_failedrun_marked.png){: align=left }
+  <figcaption>Surprise, the result is not quite what we expected, the run failed. Maybe you spot what might be wrong. Click on "Close" to go back to the workflow editor.</figcaption>
+</figure>
+
+<figure markdown>
+  ![Image title](images/WorkflowEditor_addm2m_cred_marked.png){: align=left }
+  <figcaption>Sure, we haven't entered the credentials from our m2m client yet. Let's do that and do the cycle. (Don't forget to hit "Save Changes" before.)</figcaption>
+</figure>
+
+
+<figure markdown>
+  ![Image title](images/WorkflowEditor_getLIAMToken_suceeded.png){: align=left }
+  <figcaption>Nice!</figcaption>
+</figure>
+
+We just debugged our workflow template! We are now ready for new challenges!
+
+## Developing our first own action
+
+Time to develop our first own action. Now that we have the LIAM token, we can authenticate to the any Blue yonder API. 
+So let's call the LDE Overrides API!
 
 !!! info "How to use results from previous actions"
     If you want to use results from previous actions, you can access them with `body('NAME OF THE ACTION')`, as everything
@@ -273,8 +340,9 @@ This is how the empty HTTP action looks like:
   }
 }
 ```
-Now, if we go back to the LDE Predictions Overrides API documentation in the 
+Now, if we remember LDE Predictions Overrides API documentation in the 
 API Catalog we saw that the request to get a list of predictions looks like this.
+If you don't have a photographic memory, here is what we saw there: 
 
 ``` bash
 curl -X 'GET' \
@@ -370,5 +438,9 @@ Can you figure that out and restrict the results to only overrides from some day
     ```
 
 ## The Foreach Loop
+
+Now we have a list of all recent overrides predictions, but we are only interested in the newly created overrides predictions.
+
+For this, the idea is to loop over all entries in the result from the previous HTTP action to retrieve the list of override predictions.
 
 
