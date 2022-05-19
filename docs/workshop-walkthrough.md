@@ -551,4 +551,245 @@ maybe this works as before? (@ .. body... do you remember?). Try it out.
 </figure>
 
 
+Now, let's add some actions that are executed in every iteration over all prediction overrides.
+
+As a reminder: Based on a "if" condition (timestamp > current time - 1 minute) we want to create an exception in the 
+exception service.
+
+Lets start with the "if" condition. In order to see the empty structure of a condition, we do a trick. As nested structures 
+("If" inside "Foreach" loop) is not supported by the low-code representation currently,  
+we just add a dummy condition, copy the pro-code json of it and delete it again.
+
+Now we can remove the "else" entry and empty the "runAfter" field (as it will run inside a loop).
+
+Or, you just copy it from here, there is no shame, as admittedly this is quite cumbersome:
+
+``` json hl_lines="4 5 6 7 8 9"
+{
+  "type": "Foreach",
+  "actions": {
+    "Our_filter": {
+      "actions": {},
+      "expression": {},
+      "runAfter": {},
+      "type": "If"
+    }
+  },
+  "foreach": "@body('Get Prediction Overrides')",
+  "runAfter": {
+    "Get Prediction Overrides": [
+      "Succeeded"
+    ]
+  }
+}
+```
+So, we added a new action in the empty actions section and called it "Our_Filter". The parser will complain, as the 
+expression secton must not be empty, so we have to fill it...remember (timestamp > current time - 1 minute)?
+
+!!! hint
+    Inside a foreach loop, you have access to the data of the current entity with the "item" keyword. As nested loops 
+    are possible, you need to pass it the name of the foreach loop. 
+
+But this time I have to help you, because of our limited time and without reading the documentation of the Azure 
+Logic Apps documentation and experimenting a lot, this is impossible to guess.
+
+So this is the expression:
+
+``` json
+        "and": [
+          {
+            "greater": [
+              "@{ticks(items('Loop')['creation_time'])}",
+              "@{ticks(getPastTime(1, 'Minute'))}"
+            ]
+          }
+        ]
+```
+Not exactly intuitive, right? And maybe I did a tiny bug in this expression...
+So insert it in our contidion inside the loop and debug!
+
+??? warning "You tried very hard, I know..."
+    {
+      "type": "Foreach",
+      "actions": {
+        "Our_filter": {
+          "actions": {},
+          "expression": {
+            "and": [
+              {
+                "greater": [
+                  "@{ticks(items('Process Prediction Overrides')['creation_time'])}",
+                  "@{ticks(getPastTime(1, 'Minute'))}"
+                ]
+              }
+            ]
+          },
+          "runAfter": {},
+          "type": "If"
+        }
+      },
+      "foreach": "@body('Get Prediction Overrides')",
+      "runAfter": {
+        "Get Prediction Overrides": [
+          "Succeeded"
+        ]
+      }
+    }
+
+
+<figure markdown>
+  ![Image title](images/WorkflowEditor_foreach_runstats_if.png){: align=left }
+  <figcaption>In the runstats you should now see the expression result.</figcaption>
+</figure>
+
+!!! info "Can you tweak the getPastTime in a way that the expression turns to true?"
+    Might help for debugging...
+
+So we are nearly there!
+
+All we need is a Http if the expression is true to create an exception in the Exception Service.
+
+!!! hint
+    The API spec for the exception service can be found in the API Catalog as "LUI Services - Exception Service APIs v1"
+    But for your convenience I post it here:
+    ```
+    curl -X 'POST' \
+      'https://api.jdadelivers.com/lui/exception/v1/exceptions' \
+      -H 'accept: application/json' \
+      -H 'Content-Type: application/json' \
+      -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IlJHYmJjdzhTS05QUEtHRTI0QjZBUjRKZEJvOXJhdTREMHZOeG5OWUxSSzgifQ.eyJpc3MiOiJodHRwczovL2JsdWV5b25kZXJ1cy5iMmNsb2dpbi5jb20vZmEzZTBiNmUtYjJjYy00Njc4LWI4MmItNzIwZWIxOWU3ZDI4L3YyLjAvIiwiZXhwIjoxNjUyOTg1MzQ0LCJuYmYiOjE2NTI5ODE3NDQsImF1ZCI6IjY5YWRiMDRkLTY1OGYtNGI4Ni1hNjU5LTY3ZmUwZjIzYmQxZiIsImVtYWlsIjoiU2ViYXN0aWFuLk5ldWJhdWVyQGJsdWV5b25kZXIuY29tIiwiZ2l2ZW5fbmFtZSI6IlNlYmFzdGlhbiIsImZhbWlseV9uYW1lIjoiTmV1YmF1ZXIiLCJuYW1lIjoiU2ViYXN0aWFuIE5ldWJhdWVyIiwiaWRwX3ByZWZlcnJlZF91c2VybmFtZSI6IjEwMjQwNDdAamRhZGVsaXZlcnMuY29tIiwiaWRwIjoiYzgyNTRhMmEtOTEzYi00Y2Q2LTliNjYtMzM5ZGIzM2RhOGExIiwiYnlfcmVhbG0iOiJieS1kZXZlbG9wZXIiLCJieV9yZWFsbV9pZCI6IjdkYmVhNWJiLTI4YjUtNDA1OS1iZjJhLTViNWJmNmRhZTEwNyIsInRpZCI6ImM5NTM2Njg1LTEyNjItNDIwYi1hOTRiLTRmNTQyMDI4NDY4MCIsInN1YiI6ImMxMGZmYWZmLTcwNjgtNGIzNi1hZWEwLTY4ZWExNzY3NmIwMSIsIm9pZCI6ImMxMGZmYWZmLTcwNjgtNGIzNi1hZWEwLTY4ZWExNzY3NmIwMSIsImJ5X3Njb3BlcyI6WyJieS5pYW0uYWxsIiwiYnkucG9ydGFsLmFsbCIsImJ5LmRwLmFsbCIsImJ5LmxkZS5kZW1hbmRwcmVkaWN0aW9ucyIsImJ5LmxkZS51aSIsImJ5LmxkZS5hbGwiLCJieS5sZXh0LmFsbSJdLCJub25jZSI6IjczMjQzNzQ0LTE4MWUtNDMzOS1iYzJiLWNlZGZjNDY0ZWFmYSIsInNjcCI6ImFjY2VzcyIsImF6cCI6IjFlYzM2YjVlLWY1MzYtNDkzZi1hMDgxLWMyZTk2MjEzZTQ4NyIsInZlciI6IjEuMCIsImlhdCI6MTY1Mjk4MTc0NH0.c-mKcVoqlapCUoEd3nRom5TOLo_vsv0m9VS7W0Ifon7TJrWMw-HcWWngaPxB1rw9Ay36gay_z-YvaDCe9hfsqn2_hbcR5Zu5lvjWj7lD3fXX5Twl-Fo8XqtQbDpomi5QzFjJ_UJmBr1GN6xkEth_eqjdU4hY8BFqX-IYpBHMEBok5spkKBppE7Zf7OD3js2HH7qoEaKoULisD4wRCkNP2lCfZeohpRE1mDUNyo5annp095YRBftN98eWHWjmrYsCXQyDq_oF2hse8_y3tbBmY_Pa0vpa2cBE9heoVyCiH76eMRsGXoeGtZuLaUCNIBptt2lxSUmT9gOI19xFksSw6w' \
+      -d '[
+      {
+        "referenceId": "string",
+        "referenceType": "string",
+        "source": "string",
+        "title": "string",
+        "subTitle": "string",
+        "description": "string",
+        "type": "string",
+        "resources": [
+          "string"
+        ],
+        "associatedData": {},
+        "extFields": "{}",
+        "status": "OPEN",
+        "severity": 0,
+        "navLink": "string"
+      }
+    ]'
+    ```
+
+Can you do that? 
+As there are many people create the same exception, maybe it would be a good idea to include your name in the exception title.
+
+Also, we want to have some information about the newly created prediction override. These sound interestesting: 
+
+* `'number_clp_combination'`
+* `'creation_time'`
+* `'creation_user'`
+
+Do you remember how to embed data from items in strings? Would be handy...
+
+Did you manage to add a working HTTP post request?
+
+
+??? warning "Don't worry, the solution here..."
+    Oh, that got quite long...
+    ``` json
+    {
+      "type": "Foreach",
+      "actions": {
+        "Our_filter": {
+          "actions": {
+            "HTTP": {
+              "inputs": {
+                "body": [
+                  {
+                    "associatedData": {},
+                    "description": "Number of product-locations: @{items('Process Prediction Overrides')['number_clp_combination']}, created: @{items('Process Prediction Overrides')['creation_time']} by @{items('Process Prediction Overrides')['creation_user']}",
+                    "extFields": "{}",
+                    "financialImpact": 0,
+                    "navLink": "navLink",
+                    "referenceId": "NA",
+                    "referenceType": "LDE Prediction Overrides",
+                    "resources": [
+                      "resources"
+                    ],
+                    "severity": 0,
+                    "source": "DEVCON",
+                    "subTitle": "NA",
+                    "title": "<Your name> Unprocessed Prediction Override",
+                    "type": "Unprocessed Prediction Override",
+                    "unitImpact": 0
+                  }
+                ],
+                "headers": {
+                  "Authorization": "Bearer @{body('Get LIAM Token')?['access_token']}",
+                  "Content-Type": "application/json",
+                  "accept": "application/json"
+                },
+                "method": "POST",
+                "uri": "https://api.jdadelivers.com/lui/exception/v1/exceptions"
+              },
+              "runAfter": {},
+              "type": "Http"
+            }
+          },
+          "expression": {
+            "and": [
+              {
+                "greater": [
+                  "@{ticks(items('Process Prediction Overrides')['creation_time'])}",
+                  "@{ticks(getPastTime(1, 'Minute'))}"
+                ]
+              }
+            ]
+          },
+          "runAfter": {},
+          "type": "If"
+        }
+      },
+      "foreach": "@body('Get Prediction Overrides')",
+      "runAfter": {
+        "Get Prediction Overrides": [
+          "Succeeded"
+        ]
+      }
+    }
+    ```
+
+Now, a very last thing is missing, we still trigger the workflow manually...but we wwanted to run the workflow
+based on a trigger every minute.
+
+If you have a look at the global pro-code spec, you will find this section called "triggers"
+
+``` json 
+    "triggers": {
+      "request": {
+        "inputs": {
+          "schema": {}
+        },
+        "kind": "Http",
+        "type": "Request"
+      }
+    }
+```
+
+all we need to do is replace this with a so called recurrent trigger:
+
+``` json 
+    "triggers": {
+      "Recurrence": {
+        "evaluatedRecurrence": {
+          "frequency": "Minute",
+          "interval": 1
+        },
+        "recurrence": {
+          "frequency": "Minute",
+          "interval": 1
+        },
+        "type": "Recurrence"
+      }
+    }
+```
 
