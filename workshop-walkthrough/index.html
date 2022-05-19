@@ -657,6 +657,226 @@ Hey, don't worry, took me several days to figure that out ;-)</p>
 </p>
 <figcaption>If all goes well, we should see a dummy iteration doing nothing for every prediction override.</figcaption>
 </figure>
+<p>Now, let's add some actions that are executed in every iteration over all prediction overrides.</p>
+<p>As a reminder: Based on a "if" condition (timestamp &gt; current time - 1 minute) we want to create an exception in the 
+exception service.</p>
+<p>Lets start with the "if" condition. In order to see the empty structure of a condition, we do a trick. As nested structures 
+("If" inside "Foreach" loop) is not supported by the low-code representation currently,<br/>
+we just add a dummy condition, copy the pro-code json of it and delete it again.</p>
+<p>Now we can remove the "else" entry and empty the "runAfter" field (as it will run inside a loop).</p>
+<p>Or, you just copy it from here, there is no shame, as admittedly this is quite cumbersome:</p>
+<p><div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Foreach"</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="hll"><span class="w">    </span><span class="nt">"Our_filter"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="hll"><span class="w">      </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w"></span>
+</span><span class="hll"><span class="w">      </span><span class="nt">"expression"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w"></span>
+</span><span class="hll"><span class="w">      </span><span class="nt">"runAfter"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w"></span>
+</span><span class="hll"><span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"If"</span><span class="w"></span>
+</span><span class="hll"><span class="w">    </span><span class="p">}</span><span class="w"></span>
+</span><span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">  </span><span class="nt">"foreach"</span><span class="p">:</span><span class="w"> </span><span class="s2">"@body('Get Prediction Overrides')"</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">"runAfter"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">"Get Prediction Overrides"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">      </span><span class="s2">"Succeeded"</span><span class="w"></span>
+<span class="w">    </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+So, we added a new action in the empty actions section and called it "Our_Filter". The parser will complain, as the 
+expression secton must not be empty, so we have to fill it...remember (timestamp &gt; current time - 1 minute)?</p>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>Inside a foreach loop, you have access to the data of the current entity with the "item" keyword. As nested loops 
+are possible, you need to pass it the name of the foreach loop. </p>
+</div>
+<p>But this time I have to help you, because of our limited time and without reading the documentation of the Azure 
+Logic Apps documentation and experimenting a lot, this is impossible to guess.</p>
+<p>So this is the expression:</p>
+<p><div class="highlight"><pre><span></span><code><span class="w">        </span><span class="nt">"and"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">          </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">"greater"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">              </span><span class="s2">"@{ticks(items('Loop')['creation_time'])}"</span><span class="p">,</span><span class="w"></span>
+<span class="w">              </span><span class="s2">"@{ticks(getPastTime(1, 'Minute'))}"</span><span class="w"></span>
+<span class="w">            </span><span class="p">]</span><span class="w"></span>
+<span class="w">          </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="p">]</span><span class="w"></span>
+</code></pre></div>
+Not exactly intuitive, right? And maybe I did a tiny bug in this expression...
+So insert it in our contidion inside the loop and debug!</p>
+<details class="warning">
+<summary>You tried very hard, I know...</summary>
+<p>{
+  "type": "Foreach",
+  "actions": {
+    "Our_filter": {
+      "actions": {},
+      "expression": {
+        "and": [
+          {
+            "greater": [
+              "@{ticks(items('Process Prediction Overrides')['creation_time'])}",
+              "@{ticks(getPastTime(1, 'Minute'))}"
+            ]
+          }
+        ]
+      },
+      "runAfter": {},
+      "type": "If"
+    }
+  },
+  "foreach": "@body('Get Prediction Overrides')",
+  "runAfter": {
+    "Get Prediction Overrides": [
+      "Succeeded"
+    ]
+  }
+}</p>
+</details>
+<figure>
+<p><img align="left" alt="Image title" src="../images/WorkflowEditor_foreach_runstats_if.png"/>
+</p>
+<figcaption>In the runstats you should now see the expression result.</figcaption>
+</figure>
+<div class="admonition info">
+<p class="admonition-title">Can you tweak the getPastTime in a way that the expression turns to true?</p>
+<p>Might help for debugging...</p>
+</div>
+<p>So we are nearly there!</p>
+<p>All we need is a Http if the expression is true to create an exception in the Exception Service.</p>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>The API spec for the exception service can be found in the API Catalog as "LUI Services - Exception Service APIs v1"
+But for your convenience I post it here:
+<div class="highlight"><pre><span></span><code>curl -X 'POST' \
+  'https://api.jdadelivers.com/lui/exception/v1/exceptions' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IlJHYmJjdzhTS05QUEtHRTI0QjZBUjRKZEJvOXJhdTREMHZOeG5OWUxSSzgifQ.eyJpc3MiOiJodHRwczovL2JsdWV5b25kZXJ1cy5iMmNsb2dpbi5jb20vZmEzZTBiNmUtYjJjYy00Njc4LWI4MmItNzIwZWIxOWU3ZDI4L3YyLjAvIiwiZXhwIjoxNjUyOTg1MzQ0LCJuYmYiOjE2NTI5ODE3NDQsImF1ZCI6IjY5YWRiMDRkLTY1OGYtNGI4Ni1hNjU5LTY3ZmUwZjIzYmQxZiIsImVtYWlsIjoiU2ViYXN0aWFuLk5ldWJhdWVyQGJsdWV5b25kZXIuY29tIiwiZ2l2ZW5fbmFtZSI6IlNlYmFzdGlhbiIsImZhbWlseV9uYW1lIjoiTmV1YmF1ZXIiLCJuYW1lIjoiU2ViYXN0aWFuIE5ldWJhdWVyIiwiaWRwX3ByZWZlcnJlZF91c2VybmFtZSI6IjEwMjQwNDdAamRhZGVsaXZlcnMuY29tIiwiaWRwIjoiYzgyNTRhMmEtOTEzYi00Y2Q2LTliNjYtMzM5ZGIzM2RhOGExIiwiYnlfcmVhbG0iOiJieS1kZXZlbG9wZXIiLCJieV9yZWFsbV9pZCI6IjdkYmVhNWJiLTI4YjUtNDA1OS1iZjJhLTViNWJmNmRhZTEwNyIsInRpZCI6ImM5NTM2Njg1LTEyNjItNDIwYi1hOTRiLTRmNTQyMDI4NDY4MCIsInN1YiI6ImMxMGZmYWZmLTcwNjgtNGIzNi1hZWEwLTY4ZWExNzY3NmIwMSIsIm9pZCI6ImMxMGZmYWZmLTcwNjgtNGIzNi1hZWEwLTY4ZWExNzY3NmIwMSIsImJ5X3Njb3BlcyI6WyJieS5pYW0uYWxsIiwiYnkucG9ydGFsLmFsbCIsImJ5LmRwLmFsbCIsImJ5LmxkZS5kZW1hbmRwcmVkaWN0aW9ucyIsImJ5LmxkZS51aSIsImJ5LmxkZS5hbGwiLCJieS5sZXh0LmFsbSJdLCJub25jZSI6IjczMjQzNzQ0LTE4MWUtNDMzOS1iYzJiLWNlZGZjNDY0ZWFmYSIsInNjcCI6ImFjY2VzcyIsImF6cCI6IjFlYzM2YjVlLWY1MzYtNDkzZi1hMDgxLWMyZTk2MjEzZTQ4NyIsInZlciI6IjEuMCIsImlhdCI6MTY1Mjk4MTc0NH0.c-mKcVoqlapCUoEd3nRom5TOLo_vsv0m9VS7W0Ifon7TJrWMw-HcWWngaPxB1rw9Ay36gay_z-YvaDCe9hfsqn2_hbcR5Zu5lvjWj7lD3fXX5Twl-Fo8XqtQbDpomi5QzFjJ_UJmBr1GN6xkEth_eqjdU4hY8BFqX-IYpBHMEBok5spkKBppE7Zf7OD3js2HH7qoEaKoULisD4wRCkNP2lCfZeohpRE1mDUNyo5annp095YRBftN98eWHWjmrYsCXQyDq_oF2hse8_y3tbBmY_Pa0vpa2cBE9heoVyCiH76eMRsGXoeGtZuLaUCNIBptt2lxSUmT9gOI19xFksSw6w' \
+  -d '[
+  {
+    "referenceId": "string",
+    "referenceType": "string",
+    "source": "string",
+    "title": "string",
+    "subTitle": "string",
+    "description": "string",
+    "type": "string",
+    "resources": [
+      "string"
+    ],
+    "associatedData": {},
+    "extFields": "{}",
+    "status": "OPEN",
+    "severity": 0,
+    "navLink": "string"
+  }
+]'
+</code></pre></div></p>
+</div>
+<p>Can you do that? 
+As there are many people create the same exception, maybe it would be a good idea to include your name in the exception title.</p>
+<p>Also, we want to have some information about the newly created prediction override. These sound interestesting: </p>
+<ul>
+<li><code>'number_clp_combination'</code></li>
+<li><code>'creation_time'</code></li>
+<li><code>'creation_user'</code></li>
+</ul>
+<p>Do you remember how to embed data from items in strings? Would be handy...</p>
+<p>Did you manage to add a working HTTP post request?</p>
+<details class="warning">
+<summary>Don't worry, the solution here...</summary>
+<p>Oh, that got quite long...
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Foreach"</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">"Our_filter"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">"HTTP"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">          </span><span class="nt">"inputs"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">"body"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">              </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="nt">"associatedData"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w"></span>
+<span class="w">                </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Number of product-locations: @{items('Process Prediction Overrides')['number_clp_combination']}, created: @{items('Process Prediction Overrides')['creation_time']} by @{items('Process Prediction Overrides')['creation_user']}"</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">"extFields"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{}"</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">"financialImpact"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">"navLink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"navLink"</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">"referenceId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"NA"</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">"referenceType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"LDE Prediction Overrides"</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">"resources"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">                  </span><span class="s2">"resources"</span><span class="w"></span>
+<span class="w">                </span><span class="p">],</span><span class="w"></span>
+<span class="w">                </span><span class="nt">"severity"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">"source"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DEVCON"</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">"subTitle"</span><span class="p">:</span><span class="w"> </span><span class="s2">"NA"</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;Your name&gt; Unprocessed Prediction Override"</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Unprocessed Prediction Override"</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">"unitImpact"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w"></span>
+<span class="w">              </span><span class="p">}</span><span class="w"></span>
+<span class="w">            </span><span class="p">],</span><span class="w"></span>
+<span class="w">            </span><span class="nt">"headers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">              </span><span class="nt">"Authorization"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Bearer @{body('Get LIAM Token')?['access_token']}"</span><span class="p">,</span><span class="w"></span>
+<span class="w">              </span><span class="nt">"Content-Type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"application/json"</span><span class="p">,</span><span class="w"></span>
+<span class="w">              </span><span class="nt">"accept"</span><span class="p">:</span><span class="w"> </span><span class="s2">"application/json"</span><span class="w"></span>
+<span class="w">            </span><span class="p">},</span><span class="w"></span>
+<span class="w">            </span><span class="nt">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"POST"</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">"uri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://api.jdadelivers.com/lui/exception/v1/exceptions"</span><span class="w"></span>
+<span class="w">          </span><span class="p">},</span><span class="w"></span>
+<span class="w">          </span><span class="nt">"runAfter"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w"></span>
+<span class="w">          </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Http"</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">      </span><span class="p">},</span><span class="w"></span>
+<span class="w">      </span><span class="nt">"expression"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">"and"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">          </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">"greater"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">              </span><span class="s2">"@{ticks(items('Process Prediction Overrides')['creation_time'])}"</span><span class="p">,</span><span class="w"></span>
+<span class="w">              </span><span class="s2">"@{ticks(getPastTime(1, 'Minute'))}"</span><span class="w"></span>
+<span class="w">            </span><span class="p">]</span><span class="w"></span>
+<span class="w">          </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="p">]</span><span class="w"></span>
+<span class="w">      </span><span class="p">},</span><span class="w"></span>
+<span class="w">      </span><span class="nt">"runAfter"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w"></span>
+<span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"If"</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">  </span><span class="nt">"foreach"</span><span class="p">:</span><span class="w"> </span><span class="s2">"@body('Get Prediction Overrides')"</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">"runAfter"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">"Get Prediction Overrides"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">      </span><span class="s2">"Succeeded"</span><span class="w"></span>
+<span class="w">    </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div></p>
+</details>
+<p>Now, a very last thing is missing, we still trigger the workflow manually...but we wwanted to run the workflow
+based on a trigger every minute.</p>
+<p>If you have a look at the global pro-code spec, you will find this section called "triggers"</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">"triggers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">"request"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">"inputs"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">          </span><span class="nt">"schema"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w"></span>
+<span class="w">        </span><span class="p">},</span><span class="w"></span>
+<span class="w">        </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Http"</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Request"</span><span class="w"></span>
+<span class="w">      </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+</code></pre></div>
+<p>all we need to do is replace this with a so called recurrent trigger:</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">"triggers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">"Recurrence"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">"evaluatedRecurrence"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">          </span><span class="nt">"frequency"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Minute"</span><span class="p">,</span><span class="w"></span>
+<span class="w">          </span><span class="nt">"interval"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">        </span><span class="p">},</span><span class="w"></span>
+<span class="w">        </span><span class="nt">"recurrence"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">          </span><span class="nt">"frequency"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Minute"</span><span class="p">,</span><span class="w"></span>
+<span class="w">          </span><span class="nt">"interval"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">        </span><span class="p">},</span><span class="w"></span>
+<span class="w">        </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Recurrence"</span><span class="w"></span>
+<span class="w">      </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+</code></pre></div>
 </article>
 </div>
 </div>
