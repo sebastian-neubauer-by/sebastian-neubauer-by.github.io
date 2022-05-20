@@ -511,6 +511,7 @@ First we need to delete the empty action, otherwise the parser will complain.
 ```
 
 Do you notice the foreach key? 
+
 ``` json hl_lines="9"
 {
   "type": "Foreach",
@@ -534,6 +535,7 @@ maybe this works as before? (@ .. body... do you remember?). Try it out.
 
 ??? warning "No, I don't get it, show me"
     Pretty simple if you know how to do it.
+    ``` json
     {
       "type": "Foreach",
       "actions": {},
@@ -544,6 +546,7 @@ maybe this works as before? (@ .. body... do you remember?). Try it out.
         ]
       }
     }
+    ``` 
 
 <figure markdown>
   ![Image title](images/WorkflowEditor_foreach_runstats_dummy.png){: align=left }
@@ -609,6 +612,7 @@ Not exactly intuitive, right? And maybe I did a tiny bug in this expression...
 So insert it in our contidion inside the loop and debug!
 
 ??? warning "You tried very hard, I know..."
+    ``` json
     {
       "type": "Foreach",
       "actions": {
@@ -635,6 +639,7 @@ So insert it in our contidion inside the loop and debug!
         ]
       }
     }
+    ``` 
 
 
 <figure markdown>
@@ -684,7 +689,7 @@ As there are many people create the same exception, maybe it would be a good ide
 
 Also, we want to have some information about the newly created prediction override. These sound interestesting: 
 
-* `'number_clp_combination'`
+* `'min_affected_date'`
 * `'creation_time'`
 * `'creation_user'`
 
@@ -706,7 +711,7 @@ Did you manage to add a working HTTP post request?
                 "body": [
                   {
                     "associatedData": {},
-                    "description": "Number of product-locations: @{items('Process Prediction Overrides')['number_clp_combination']}, created: @{items('Process Prediction Overrides')['creation_time']} by @{items('Process Prediction Overrides')['creation_user']}",
+                    "description": "Active from: @{items('Process Prediction Overrides')['min_affected_date']}, created: @{items('Process Prediction Overrides')['creation_time']} by @{items('Process Prediction Overrides')['creation_user']}",
                     "extFields": "{}",
                     "financialImpact": 0,
                     "navLink": "navLink",
@@ -839,7 +844,7 @@ Wohoo, that's it...lets test it and I will create some new prediction overrides.
                       "body": [
                         {
                           "associatedData": {},
-                          "description": "Number of product-locations: @{items('Process Prediction Overrides')['number_clp_combination']}, created: @{items('Process Prediction Overrides')['creation_time']} by @{items('Process Prediction Overrides')['creation_user']}",
+                          "description": "Active from: @{items('Process Prediction Overrides')['min_affected_date']}, created: @{items('Process Prediction Overrides')['creation_time']} by @{items('Process Prediction Overrides')['creation_user']}",
                           "extFields": "{}",
                           "financialImpact": 0,
                           "navLink": "navLink",
