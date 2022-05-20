@@ -617,8 +617,8 @@ time 1 minute ago.</p>
 <span class="w">  </span><span class="p">}</span><span class="w"></span>
 <span class="p">}</span><span class="w"></span>
 </code></pre></div>
-<p>Do you notice the foreach key? 
-<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<p>Do you notice the foreach key? </p>
+<p><div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Foreach"</span><span class="p">,</span><span class="w"></span>
 <span class="w">  </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="p">},</span><span class="w"></span>
@@ -641,16 +641,17 @@ Hey, don't worry, took me several days to figure that out ;-)</p>
 <details class="warning">
 <summary>No, I don't get it, show me</summary>
 <p>Pretty simple if you know how to do it.
-{
-  "type": "Foreach",
-  "actions": {},
-  "foreach": "@body('Get Prediction Overrides')",
-  "runAfter": {
-    "Get Prediction Overrides": [
-      "Succeeded"
-    ]
-  }
-}</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Foreach"</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w"></span>
+<span class="w">  </span><span class="nt">"foreach"</span><span class="p">:</span><span class="w"> </span><span class="s2">"@body('Get Prediction Overrides')"</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">"runAfter"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">"Get Prediction Overrides"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">      </span><span class="s2">"Succeeded"</span><span class="w"></span>
+<span class="w">    </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div></p>
 </details>
 <figure>
 <p><img align="left" alt="Image title" src="../images/WorkflowEditor_foreach_runstats_dummy.png"/>
@@ -706,32 +707,33 @@ Not exactly intuitive, right? And maybe I did a tiny bug in this expression...
 So insert it in our contidion inside the loop and debug!</p>
 <details class="warning">
 <summary>You tried very hard, I know...</summary>
-<p>{
-  "type": "Foreach",
-  "actions": {
-    "Our_filter": {
-      "actions": {},
-      "expression": {
-        "and": [
-          {
-            "greater": [
-              "@{ticks(items('Process Prediction Overrides')['creation_time'])}",
-              "@{ticks(getPastTime(1, 'Minute'))}"
-            ]
-          }
-        ]
-      },
-      "runAfter": {},
-      "type": "If"
-    }
-  },
-  "foreach": "@body('Get Prediction Overrides')",
-  "runAfter": {
-    "Get Prediction Overrides": [
-      "Succeeded"
-    ]
-  }
-}</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Foreach"</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">"Our_filter"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">"actions"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w"></span>
+<span class="w">      </span><span class="nt">"expression"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">"and"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">          </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">"greater"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">              </span><span class="s2">"@{ticks(items('Process Prediction Overrides')['creation_time'])}"</span><span class="p">,</span><span class="w"></span>
+<span class="w">              </span><span class="s2">"@{ticks(getPastTime(1, 'Minute'))}"</span><span class="w"></span>
+<span class="w">            </span><span class="p">]</span><span class="w"></span>
+<span class="w">          </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="p">]</span><span class="w"></span>
+<span class="w">      </span><span class="p">},</span><span class="w"></span>
+<span class="w">      </span><span class="nt">"runAfter"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w"></span>
+<span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"If"</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">  </span><span class="nt">"foreach"</span><span class="p">:</span><span class="w"> </span><span class="s2">"@body('Get Prediction Overrides')"</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">"runAfter"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">"Get Prediction Overrides"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">      </span><span class="s2">"Succeeded"</span><span class="w"></span>
+<span class="w">    </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
 </details>
 <figure>
 <p><img align="left" alt="Image title" src="../images/WorkflowEditor_foreach_runstats_if.png"/>
@@ -778,7 +780,7 @@ But for your convenience I post it here:
 As there are many people create the same exception, maybe it would be a good idea to include your name in the exception title.</p>
 <p>Also, we want to have some information about the newly created prediction override. These sound interestesting: </p>
 <ul>
-<li><code>'number_clp_combination'</code></li>
+<li><code>'min_affected_date'</code></li>
 <li><code>'creation_time'</code></li>
 <li><code>'creation_user'</code></li>
 </ul>
@@ -797,7 +799,7 @@ As there are many people create the same exception, maybe it would be a good ide
 <span class="w">            </span><span class="nt">"body"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
 <span class="w">              </span><span class="p">{</span><span class="w"></span>
 <span class="w">                </span><span class="nt">"associatedData"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w"></span>
-<span class="w">                </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Number of product-locations: @{items('Process Prediction Overrides')['number_clp_combination']}, created: @{items('Process Prediction Overrides')['creation_time']} by @{items('Process Prediction Overrides')['creation_user']}"</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Active from: @{items('Process Prediction Overrides')['min_affected_date']}, created: @{items('Process Prediction Overrides')['creation_time']} by @{items('Process Prediction Overrides')['creation_user']}"</span><span class="p">,</span><span class="w"></span>
 <span class="w">                </span><span class="nt">"extFields"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{}"</span><span class="p">,</span><span class="w"></span>
 <span class="w">                </span><span class="nt">"financialImpact"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"></span>
 <span class="w">                </span><span class="nt">"navLink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"navLink"</span><span class="p">,</span><span class="w"></span>
@@ -921,7 +923,7 @@ based on a trigger every minute.</p>
 <span class="w">                  </span><span class="nt">"body"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
 <span class="w">                    </span><span class="p">{</span><span class="w"></span>
 <span class="w">                      </span><span class="nt">"associatedData"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w"></span>
-<span class="w">                      </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Number of product-locations: @{items('Process Prediction Overrides')['number_clp_combination']}, created: @{items('Process Prediction Overrides')['creation_time']} by @{items('Process Prediction Overrides')['creation_user']}"</span><span class="p">,</span><span class="w"></span>
+<span class="w">                      </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Active from: @{items('Process Prediction Overrides')['min_affected_date']}, created: @{items('Process Prediction Overrides')['creation_time']} by @{items('Process Prediction Overrides')['creation_user']}"</span><span class="p">,</span><span class="w"></span>
 <span class="w">                      </span><span class="nt">"extFields"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{}"</span><span class="p">,</span><span class="w"></span>
 <span class="w">                      </span><span class="nt">"financialImpact"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"></span>
 <span class="w">                      </span><span class="nt">"navLink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"navLink"</span><span class="p">,</span><span class="w"></span>
