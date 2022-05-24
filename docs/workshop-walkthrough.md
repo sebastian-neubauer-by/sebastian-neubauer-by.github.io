@@ -12,6 +12,20 @@ You need to enter the realm, which is `by-developer` for the developer portal.
 
 Then login with your account credentials.
 
+## Introduction
+
+A very brief overview of what we are going to build in this workshop.
+
+We are using the Luminate Platform service "Workflow" to call the LDE Prediction Overrides API. 
+We will configure that workflow to be executed periodically every minute.
+With the returned prediction overrides, we are going to implement a filter on prediction overrides which are created 
+not longer than a minute ago. 
+As the workflow runs every minute, we therefore get exclusively the newly created prediction overrides. 
+For each new prediction override we then create an exception in the Luminate Platform Exception Service.
+
+
+That's it, easy, right?
+
 ## Navigate the portal
 
 <figure markdown>
@@ -119,12 +133,14 @@ This is increasing security dramatically, as we can shape those permissions such
 Through the "scope" we can limit which services can be accessed, so that even if this m2m client is leaked, it
 cannot be used for anything else that the anticipated use-case.
 
-
 We pre-created one such m2m client. In a production setting we would share the client_secret via Azure Key Vaults or 
 some other secure secrets sharing mechanism. For the sake of simplicity, we use a poor-mans out-of-band second-factor secret sharing. 
 Replace the first 4 `_` with the 4 characters on the slides
 
+```
 ____Q~pR26qXQ8qFgAa552NbVzBwwV1F4FJ1oaz8
+```
+
 
 Alternatively, in the "DevCon22 Workshop" application in ALM, there is a module called "shared m2m client" and in there 
 is a workflow called "shared m2m client secret". If you enter the workflow editor for this workflow, cou can copy&paste 

@@ -13,7 +13,7 @@ extra_css:
 
 nav:
     - Registration: index.md
-#    - The Story: story.md
+    - The Story: story.md
 #    - Introduction: introduction.md
     - Workshop Walkthrough: workshop-walkthrough.md
 
