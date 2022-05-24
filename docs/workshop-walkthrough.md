@@ -61,7 +61,7 @@ and subsequently on the "Execute" button.
   <figcaption>You can try the API by clicking on "Execute"</figcaption>
 </figure>
 
-By exectuing this GET request we will get a list of all prediction overrides stored in the LDE instance.
+By executing this GET request we will get a list of all prediction overrides stored in the LDE instance.
 
 <figure markdown>
   ![Image title](images/PredcitionOverrides_docs_response.png){: align=left }
@@ -119,48 +119,16 @@ This is increasing security dramatically, as we can shape those permissions such
 Through the "scope" we can limit which services can be accessed, so that even if this m2m client is leaked, it
 cannot be used for anything else that the anticipated use-case.
 
-We can create m2m clients in a self service in the Identity & Access application available in the app gallery.
 
-<figure markdown>
-  ![Image title](images/devportal_identityaccess.png){: align=left }
-  <figcaption>Access the Identity & Access application</figcaption>
-</figure>
+We pre-created one such m2m client. In a production setting we would share the client_secret via Azure Key Vaults or 
+some other secure secrets sharing mechanism. For the sake of simplicity, we use a poor-mans out-of-band second-factor secret sharing. 
+Replace the first 4 `_` with the 4 characters on the slides
 
-In the Identiy & Access application change to the "Machines" tab and with the "+" icon we can create a new m2m client 
-for our workflow.
+____Q~pR26qXQ8qFgAa552NbVzBwwV1F4FJ1oaz8
 
-<figure markdown>
-  ![Image title](images/create_m2mclient.png){: align=left }
-  <figcaption>Create a new m2m client using the "+" icon in the "Machines" tab</figcaption>
-</figure>
-
-In the pop-up give the m2m client a good name (that's hard, I know). As this is a shared environment, probably it is a 
-good idea to append your name, so why not `devcon-workshop-<yourname>`.
-
-<figure markdown>
-  ![Image title](images/m2mclient_addsecret_marked.png){: align=left }
-  <figcaption>Note the Client ID and add a secret</figcaption>
-</figure>
-
-!!! note
-    Don't forget to note the client secret and store it somewhere safe!
-    (A password manager would be a good option)
-
-<figure markdown>
-  ![Image title](images/m2mclient_copysecret_marked.png){: align=left }
-  <figcaption>Copy the secret and store it somehwere safe</figcaption>
-</figure>
-
-Now we need to add the role to be able to access the LDE oeverrides API.
-This role is called `lde-full-access`, just start to type and select in the picker.
-
-
-<figure markdown>
-  ![Image title](images/m2mclient_addrole_marked.png){: align=left }
-  <figcaption>Add the `lde-full-access` role</figcaption>
-</figure>
-
-That's it, we created a m2m client. Easy, right?
+Alternatively, in the "DevCon22 Workshop" application in ALM, there is a module called "shared m2m client" and in there 
+is a workflow called "shared m2m client secret". If you enter the workflow editor for this workflow, cou can copy&paste 
+the m2m client credentials from there. You learn how to access and do all that in the next section.
 
 ## Building the Workflow
 
@@ -181,7 +149,7 @@ That is exactly what the "Workflow" feature is for.
 </figure>
 
 !!! info "ALM in a nutshell"
-    The Application Lifecycle Management service (ALM) let's you create and maintain the lifecycle of applications you 
+    The Application Lifecycle Management service (ALM) lets you create and maintain the lifecycle of applications you 
     create on the Luminate Platform. An application consists of multiple modules, and each module consists of 
     several resources. In our case, the only available resource type is Workflow. We have one application for our 
     workshop and every participant will create their own module in which they can build one or more workflows.
@@ -219,7 +187,7 @@ That is exactly what the "Workflow" feature is for.
 
 <figure markdown>
   ![Image title](images/ALMStudio_add_resource_workflow_marked.png){: align=left }
-  <figcaption>As your module is brandnew it should be quite empty, so let's click on "Add resource" and select "Workflow" as the resource type</figcaption>
+  <figcaption>As your module is brand-new it should be quite empty, so let's click on "Add resource" and select "Workflow" as the resource type</figcaption>
 </figure>
 
 
@@ -333,6 +301,8 @@ Hit the plus sign after the "Get LIAM Token" and select "Http".
     So, this should return the key 'KEY' of the result of the 'NAME OF THE ACTION' action as as tring which can be directly embedded in another string:
 
     `"Hello @{body('NAME OF THE ACTION')?['KEY']}"`
+    
+    For more details, please have a look at the Azure Logic Apps Workflow Definition Language [documentation](https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-workflow-definition-language#expressions)
 
 This is how the empty HTTP action looks like:
 
@@ -415,7 +385,7 @@ It seems we need to embed a string from the result of a previous action, if only
     }
     ```
 
-If jou came that far, just "Save, Publish, Run" and check the latest run if it succeded. 
+If you came that far, just "Save, Publish, Run" and check the latest run if it succeded. 
 
 It succeeded? Great! But there are a lot of prediction overrides right, and they are all outdated which is quite 
 inconvenient because they clutter the results.
@@ -464,7 +434,7 @@ time 1 minute ago.
 
 Lets start with the loop over all entries.
 
-Just hit the plus sign after the "Get Prediction Overrides" action and select "Foreach".
+Just hit the plus sign after the "Get Prediction Overrides" action and select "Foreach" (see [documentation](https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-workflow-actions-triggers#foreach-action)).
 
 Let's rename it to "Process Prediction Overrides".
 
@@ -530,8 +500,8 @@ maybe this works as before? (@ .. body... do you remember?). Try it out.
 
 !!! hint
     This is a hard one to figure out: Curly braces `{}` convert the data to a string. 
-    If you do not want to have a string, but the original data structure, you need to leave out the curly braces `}`.
-    Hey, don't worry, took me several days to figure that out ;-)
+    If you do not want to have a string, but the original data structure, you need to leave out the curly braces `{}`.
+    Hey, don't worry, took me several days to figure that out ;-) (see "String interpolation" in the [documentation](https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-workflow-definition-language#expressions))
 
 ??? warning "No, I don't get it, show me"
     Pretty simple if you know how to do it.
@@ -565,6 +535,8 @@ we just add a dummy condition, copy the pro-code json of it and delete it again.
 
 Now we can remove the "else" entry and empty the "runAfter" field (as it will run inside a loop).
 
+You can of course also refer to the [documentation](https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-workflow-actions-triggers#if-action)
+
 Or, you just copy it from here, there is no shame, as admittedly this is quite cumbersome:
 
 ``` json hl_lines="4 5 6 7 8 9"
@@ -594,7 +566,7 @@ expression secton must not be empty, so we have to fill it...remember (timestamp
     are possible, you need to pass it the name of the foreach loop. 
 
 But this time I have to help you, because of our limited time and without reading the documentation of the Azure 
-Logic Apps documentation and experimenting a lot, this is impossible to guess.
+Logic Apps documentation and experimenting a lot, this is impossible to guess. (see [documentation](https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-workflow-actions-triggers#how-conditions-use-expressions))
 
 So this is the expression:
 
@@ -609,7 +581,7 @@ So this is the expression:
         ]
 ```
 Not exactly intuitive, right? And maybe I did a tiny bug in this expression...
-So insert it in our contidion inside the loop and debug!
+So insert it in our condition inside the loop and debug!
 
 ??? warning "You tried very hard, I know..."
     ``` json
@@ -763,7 +735,7 @@ Did you manage to add a working HTTP post request?
     }
     ```
 
-Now, a very last thing is missing, we still trigger the workflow manually...but we wwanted to run the workflow
+Now, a very last thing is missing, we still trigger the workflow manually...but we wanted to run the workflow
 based on a trigger every minute.
 
 If you have a look at the global pro-code spec, you will find this section called "triggers"
@@ -798,7 +770,7 @@ all we need to do is replace this with a so called recurrent trigger:
     }
 ```
 
-Wohoo, that's it...lets test it and I will create some new prediction overrides...
+Woohoo, that's it...let's test it and I will create some new prediction overrides...
 
 ??? warning "Screwed something up on the way...hey, that's software engineering...just copy ;)"
     ``` json
