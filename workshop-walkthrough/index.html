@@ -234,7 +234,7 @@ and subsequently on the "Execute" button.</p>
 </p>
 <figcaption>You can try the API by clicking on "Execute"</figcaption>
 </figure>
-<p>By exectuing this GET request we will get a list of all prediction overrides stored in the LDE instance.</p>
+<p>By executing this GET request we will get a list of all prediction overrides stored in the LDE instance.</p>
 <figure>
 <p><img align="left" alt="Image title" src="../images/PredcitionOverrides_docs_response.png"/>
 </p>
@@ -281,44 +281,13 @@ assign to services and give it any subset of roles and permissions that our own 
 <p>This is increasing security dramatically, as we can shape those permissions such that it is "just enough" to do the job.
 Through the "scope" we can limit which services can be accessed, so that even if this m2m client is leaked, it
 cannot be used for anything else that the anticipated use-case.</p>
-<p>We can create m2m clients in a self service in the Identity &amp; Access application available in the app gallery.</p>
-<figure>
-<p><img align="left" alt="Image title" src="../images/devportal_identityaccess.png"/>
-</p>
-<figcaption>Access the Identity &amp; Access application</figcaption>
-</figure>
-<p>In the Identiy &amp; Access application change to the "Machines" tab and with the "+" icon we can create a new m2m client 
-for our workflow.</p>
-<figure>
-<p><img align="left" alt="Image title" src="../images/create_m2mclient.png"/>
-</p>
-<figcaption>Create a new m2m client using the "+" icon in the "Machines" tab</figcaption>
-</figure>
-<p>In the pop-up give the m2m client a good name (that's hard, I know). As this is a shared environment, probably it is a 
-good idea to append your name, so why not <code>devcon-workshop-&lt;yourname&gt;</code>.</p>
-<figure>
-<p><img align="left" alt="Image title" src="../images/m2mclient_addsecret_marked.png"/>
-</p>
-<figcaption>Note the Client ID and add a secret</figcaption>
-</figure>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Don't forget to note the client secret and store it somewhere safe!
-(A password manager would be a good option)</p>
-</div>
-<figure>
-<p><img align="left" alt="Image title" src="../images/m2mclient_copysecret_marked.png"/>
-</p>
-<figcaption>Copy the secret and store it somehwere safe</figcaption>
-</figure>
-<p>Now we need to add the role to be able to access the LDE oeverrides API.
-This role is called <code>lde-full-access</code>, just start to type and select in the picker.</p>
-<figure>
-<p><img align="left" alt="Image title" src="../images/m2mclient_addrole_marked.png"/>
-</p>
-<figcaption>Add the `lde-full-access` role</figcaption>
-</figure>
-<p>That's it, we created a m2m client. Easy, right?</p>
+<p>We pre-created one such m2m client. In a production setting we would share the client_secret via Azure Key Vaults or 
+some other secure secrets sharing mechanism. For the sake of simplicity, we use a poor-mans out-of-band second-factor secret sharing. 
+Replace the first 4 <code>_</code> with the 4 characters on the slides</p>
+<p>____Q~pR26qXQ8qFgAa552NbVzBwwV1F4FJ1oaz8</p>
+<p>Alternatively, in the "DevCon22 Workshop" application in ALM, there is a module called "shared m2m client" and in there 
+is a workflow called "shared m2m client secret". If you enter the workflow editor for this workflow, cou can copy&amp;paste 
+the m2m client credentials from there. You learn how to access and do all that in the next section.</p>
 <h2 id="building-the-workflow"><span class="enumerate-headings-plugin enumerate-heading-plugin">1.5</span> Building the Workflow</h2>
 <p>Now we now there is an API there is an API we have a m2m client to be able to access this API.
 Now we need something to actually call the API and trigger actions based on the results.
@@ -337,7 +306,7 @@ be found <a href="https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-w
 </figure>
 <div class="admonition info">
 <p class="admonition-title">ALM in a nutshell</p>
-<p>The Application Lifecycle Management service (ALM) let's you create and maintain the lifecycle of applications you 
+<p>The Application Lifecycle Management service (ALM) lets you create and maintain the lifecycle of applications you 
 create on the Luminate Platform. An application consists of multiple modules, and each module consists of 
 several resources. In our case, the only available resource type is Workflow. We have one application for our 
 workshop and every participant will create their own module in which they can build one or more workflows.</p>
@@ -370,7 +339,7 @@ workshop and every participant will create their own module in which they can bu
 <figure>
 <p><img align="left" alt="Image title" src="../images/ALMStudio_add_resource_workflow_marked.png"/>
 </p>
-<figcaption>As your module is brandnew it should be quite empty, so let's click on "Add resource" and select "Workflow" as the resource type</figcaption>
+<figcaption>As your module is brand-new it should be quite empty, so let's click on "Add resource" and select "Workflow" as the resource type</figcaption>
 </figure>
 <figure>
 <p><img align="left" alt="Image title" src="../images/ALMStudio_add_resource_workflow_template.png"/>
@@ -467,6 +436,7 @@ in Workflow is json, you can easily access values from the json body using <code
 finally, if we want to actually return the value (as a string), we use the <code>@</code> operator.<br/>
 So, this should return the key 'KEY' of the result of the 'NAME OF THE ACTION' action as as tring which can be directly embedded in another string:</p>
 <p><code>"Hello @{body('NAME OF THE ACTION')?['KEY']}"</code></p>
+<p>For more details, please have a look at the Azure Logic Apps Workflow Definition Language <a href="https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-workflow-definition-language#expressions">documentation</a></p>
 </div>
 <p>This is how the empty HTTP action looks like:</p>
 <p><div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
@@ -540,7 +510,7 @@ It seems we need to embed a string from the result of a previous action, if only
 <span class="p">}</span><span class="w"></span>
 </code></pre></div>
 </details>
-<p>If jou came that far, just "Save, Publish, Run" and check the latest run if it succeded. </p>
+<p>If you came that far, just "Save, Publish, Run" and check the latest run if it succeded. </p>
 <p>It succeeded? Great! But there are a lot of prediction overrides right, and they are all outdated which is quite 
 inconvenient because they clutter the results.</p>
 <p>But wasn't there a parameter in the api documentation to restrict the result to only prediction overrides created after 
@@ -580,7 +550,7 @@ where the creation timestamp is greater than the last run of the workflow. </p>
 <p>We will later on trigger the workflow periodically every minute. So the timestamp should be greater then the current 
 time 1 minute ago.</p>
 <p>Lets start with the loop over all entries.</p>
-<p>Just hit the plus sign after the "Get Prediction Overrides" action and select "Foreach".</p>
+<p>Just hit the plus sign after the "Get Prediction Overrides" action and select "Foreach" (see <a href="https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-workflow-actions-triggers#foreach-action">documentation</a>).</p>
 <p>Let's rename it to "Process Prediction Overrides".</p>
 <figure>
 <p><img align="left" alt="Image title" src="../images/WorkflowEditor_foreach_empty.png"/>
@@ -635,8 +605,8 @@ maybe this works as before? (@ .. body... do you remember?). Try it out.</p>
 <div class="admonition hint">
 <p class="admonition-title">Hint</p>
 <p>This is a hard one to figure out: Curly braces <code>{}</code> convert the data to a string. 
-If you do not want to have a string, but the original data structure, you need to leave out the curly braces <code>}</code>.
-Hey, don't worry, took me several days to figure that out ;-)</p>
+If you do not want to have a string, but the original data structure, you need to leave out the curly braces <code>{}</code>.
+Hey, don't worry, took me several days to figure that out ;-) (see "String interpolation" in the <a href="https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-workflow-definition-language#expressions">documentation</a>)</p>
 </div>
 <details class="warning">
 <summary>No, I don't get it, show me</summary>
@@ -665,6 +635,7 @@ exception service.</p>
 ("If" inside "Foreach" loop) is not supported by the low-code representation currently,<br/>
 we just add a dummy condition, copy the pro-code json of it and delete it again.</p>
 <p>Now we can remove the "else" entry and empty the "runAfter" field (as it will run inside a loop).</p>
+<p>You can of course also refer to the <a href="https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-workflow-actions-triggers#if-action">documentation</a></p>
 <p>Or, you just copy it from here, there is no shame, as admittedly this is quite cumbersome:</p>
 <p><div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Foreach"</span><span class="p">,</span><span class="w"></span>
@@ -692,7 +663,7 @@ expression secton must not be empty, so we have to fill it...remember (timestamp
 are possible, you need to pass it the name of the foreach loop. </p>
 </div>
 <p>But this time I have to help you, because of our limited time and without reading the documentation of the Azure 
-Logic Apps documentation and experimenting a lot, this is impossible to guess.</p>
+Logic Apps documentation and experimenting a lot, this is impossible to guess. (see <a href="https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-workflow-actions-triggers#how-conditions-use-expressions">documentation</a>)</p>
 <p>So this is the expression:</p>
 <p><div class="highlight"><pre><span></span><code><span class="w">        </span><span class="nt">"and"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
 <span class="w">          </span><span class="p">{</span><span class="w"></span>
@@ -704,7 +675,7 @@ Logic Apps documentation and experimenting a lot, this is impossible to guess.</
 <span class="w">        </span><span class="p">]</span><span class="w"></span>
 </code></pre></div>
 Not exactly intuitive, right? And maybe I did a tiny bug in this expression...
-So insert it in our contidion inside the loop and debug!</p>
+So insert it in our condition inside the loop and debug!</p>
 <details class="warning">
 <summary>You tried very hard, I know...</summary>
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
@@ -851,7 +822,7 @@ As there are many people create the same exception, maybe it would be a good ide
 <span class="p">}</span><span class="w"></span>
 </code></pre></div></p>
 </details>
-<p>Now, a very last thing is missing, we still trigger the workflow manually...but we wwanted to run the workflow
+<p>Now, a very last thing is missing, we still trigger the workflow manually...but we wanted to run the workflow
 based on a trigger every minute.</p>
 <p>If you have a look at the global pro-code spec, you will find this section called "triggers"</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">"triggers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
@@ -879,7 +850,7 @@ based on a trigger every minute.</p>
 <span class="w">      </span><span class="p">}</span><span class="w"></span>
 <span class="w">    </span><span class="p">}</span><span class="w"></span>
 </code></pre></div>
-<p>Wohoo, that's it...lets test it and I will create some new prediction overrides...</p>
+<p>Woohoo, that's it...let's test it and I will create some new prediction overrides...</p>
 <details class="warning">
 <summary>Screwed something up on the way...hey, that's software engineering...just copy ;)</summary>
 <div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">"definition"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
