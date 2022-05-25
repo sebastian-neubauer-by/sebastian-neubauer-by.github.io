@@ -134,7 +134,7 @@ Through the "scope" we can limit which services can be accessed, so that even if
 cannot be used for anything else that the anticipated use-case.
 
 We pre-created one such m2m client. In a production setting we would share the client_secret via Azure Key Vaults or 
-some other secure secrets sharing mechanism. For the sake of simplicity, we use a poor-mans out-of-band second-factor secret sharing. 
+some other secure secrets sharing mechanism. For the sake of simplicity, we use a poor-man's out-of-band second-factor secret sharing. 
 Replace the first 4 `_` with the 4 characters on the slides
 
 ```
