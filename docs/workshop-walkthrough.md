@@ -12,6 +12,10 @@ You need to enter the realm, which is `by-developer` for the developer portal.
 
 Then login with your account credentials.
 
+!!! note "Note"
+    Please try to tidy up behind you, so if not used anymore delete the resources you create.
+    Nonetheless, we will clean up all resources once per day, so don't be surprised if everything is gone, that's intentionally.
+
 ## Introduction
 
 A very brief overview of what we are going to build in this workshop.
